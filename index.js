@@ -55,22 +55,31 @@ const categoryMap = {
   'haircut-styling':    'Haircut & Styling',
   'hair-coloring':      'Hair Coloring',
   'hair-treatment':     'Hair Treatment',
+  'facial-skincare':    'Facial & Skincare',
   'makeup':             'Makeup',
   'manicure-pedicure':  'Manicure & Pedicure',
   'spa-massage':        'Spa & Massage',
 };
-app.get('/CTG&:category', async (req, res) => {
+const handleCategoryRequest = async (req, res) => {
   try {
-    const category = categoryMap[req.params.category];
-    if (!category) {
+    const rawCategory = req.params.category;
+    const categoryName = categoryMap[rawCategory] || rawCategory;
+    if (!categoryName) {
       return res.status(404).json({ error: 'Category not found' });
     }
-    const result = await allService.find({ category }).toArray();
+    // Match either exact category name or case-insensitive regex
+    const result = await allService.find({
+      category: { $regex: new RegExp(`^${categoryName}$`, 'i') },
+    }).toArray();
     res.send(result);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
-});
+};
+
+app.get('/CTG&:category', handleCategoryRequest);
+app.get('/CTG/:category', handleCategoryRequest);
+app.get('/category/:category', handleCategoryRequest);
 
 // Appointment Endpoints
 app.get('/appointments', async (req, res) => {
