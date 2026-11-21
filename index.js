@@ -30,6 +30,15 @@ app.get("/", (req, res) =>{
     res.send("Server Home Page!")
 })
 
+app.get('/services', async (req, res) => {
+    const result = await allService.find().toArray();
+    res.send(result)
+})
+app.get('/six-services', async (req, res) => {
+    const result = await allService.find().limit(6).toArray();
+    res.send(result);
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is runnign on port ${PORT}`);    
