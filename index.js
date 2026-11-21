@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors"
 import "dotenv/config"
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 
 const PORT = 5000;
@@ -23,7 +23,8 @@ export async function connectToMongoDB() {
 
 const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("salon-book");
-const allService = db.collection("services")
+const allService = db.collection("services");
+const allAppointments = db.collection("appointments");
 
 
 app.get("/", (req, res) =>{
@@ -38,6 +39,16 @@ app.get('/six-services', async (req, res) => {
     const result = await allService.find().limit(6).toArray();
     res.send(result);
 });
+// Service ID API and Email API
+app.get('/services/:id',  async (req, res) => {
+    const { id } = req.params;
+  if (ObjectId.isValid(id)) {
+    const result = await allService.findOne({ _id: new ObjectId(id) });
+    return res.send(result);
+  }
+  const result = await allService.find({ email: id }).toArray();
+  res.send(result);
+})
 
 // Map URL slug -> category name stored in DB
 const categoryMap = {
@@ -58,6 +69,41 @@ app.get('/CTG&:category', async (req, res) => {
     res.send(result);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Appointment Endpoints
+app.get('/appointments', async (req, res) => {
+  try {
+    const result = await allAppointments.find().sort({ createdAt: -1 }).toArray();
+    res.send(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching appointments' });
+  }
+});
+
+app.get('/appointments/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const result = await allAppointments.find({ customerEmail: email }).sort({ createdAt: -1 }).toArray();
+    res.send(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching customer appointments' });
+  }
+});
+
+app.post('/appointments', async (req, res) => {
+  try {
+    const appointment = req.body;
+    const result = await allAppointments.insertOne({
+      ...appointment,
+      status: appointment.status || 'Pending',
+      paymentStatus: appointment.paymentStatus || 'Unpaid',
+      createdAt: appointment.createdAt || new Date().toISOString(),
+    });
+    res.status(201).json({ success: true, insertedId: result.insertedId, appointment });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error saving appointment' });
   }
 });
 
