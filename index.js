@@ -39,6 +39,28 @@ app.get('/six-services', async (req, res) => {
     res.send(result);
 });
 
+// Map URL slug -> category name stored in DB
+const categoryMap = {
+  'haircut-styling':    'Haircut & Styling',
+  'hair-coloring':      'Hair Coloring',
+  'hair-treatment':     'Hair Treatment',
+  'makeup':             'Makeup',
+  'manicure-pedicure':  'Manicure & Pedicure',
+  'spa-massage':        'Spa & Massage',
+};
+app.get('/CTG&:category', async (req, res) => {
+  try {
+    const category = categoryMap[req.params.category];
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    const result = await allService.find({ category }).toArray();
+    res.send(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is runnign on port ${PORT}`);    
