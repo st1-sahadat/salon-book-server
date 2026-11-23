@@ -25,6 +25,7 @@ const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("salon-book");
 const allService = db.collection("services");
 const allAppointments = db.collection("appointments");
+const allTransactions = db.collection("transactions");
 
 // home
 app.get("/", (req, res) =>{
@@ -111,6 +112,39 @@ app.post('/appointments', async (req, res) => {
     res.status(201).json({ success: true, insertedId: result.insertedId, appointment });
   } catch (err) {
     res.status(500).json({ error: 'Server error saving appointment' });
+  }
+});
+
+// Transactions Endpoints (transactions collection)
+app.get('/transactions', async (req, res) => {
+  try {
+    const result = await allTransactions.find().sort({ createdAt: -1 }).toArray();
+    res.send(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching transactions' });
+  }
+});
+
+app.get('/transactions/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const result = await allTransactions.find({ customerEmail: email }).sort({ createdAt: -1 }).toArray();
+    res.send(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching user transactions' });
+  }
+});
+
+app.post('/transactions', async (req, res) => {
+  try {
+    const transaction = req.body;
+    const result = await allTransactions.insertOne({
+      ...transaction,
+      createdAt: transaction.createdAt || new Date().toISOString(),
+    });
+    res.status(201).json({ success: true, insertedId: result.insertedId, transaction });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error saving transaction' });
   }
 });
 
