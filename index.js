@@ -26,11 +26,11 @@ const db = mongoClient.db("salon-book");
 const allService = db.collection("services");
 const allAppointments = db.collection("appointments");
 
-
+// home
 app.get("/", (req, res) =>{
     res.send("Server Home Page!")
 })
-
+// service
 app.get('/services', async (req, res) => {
     const result = await allService.find().toArray();
     res.send(result)
@@ -49,7 +49,7 @@ app.get('/services/:id',  async (req, res) => {
   const result = await allService.find({ email: id }).toArray();
   res.send(result);
 })
-
+// Categories
 // Map URL slug -> category name stored in DB
 const categoryMap = {
   'haircut-styling':    'Haircut & Styling',
@@ -90,7 +90,6 @@ app.get('/appointments', async (req, res) => {
     res.status(500).json({ error: 'Server error fetching appointments' });
   }
 });
-
 app.get('/appointments/:email', async (req, res) => {
   try {
     const { email } = req.params;
@@ -100,7 +99,6 @@ app.get('/appointments/:email', async (req, res) => {
     res.status(500).json({ error: 'Server error fetching customer appointments' });
   }
 });
-
 app.post('/appointments', async (req, res) => {
   try {
     const appointment = req.body;
@@ -116,12 +114,10 @@ app.post('/appointments', async (req, res) => {
   }
 });
 
-
+// runing port
 app.listen(PORT, () => {
     console.log(`Server is runnign on port ${PORT}`);    
 })
-
-
 export default app;
 
 
