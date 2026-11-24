@@ -57,7 +57,7 @@ app.get("/", (req, res) =>{
     res.send("Server Home Page!")
 })
 // service
-app.get('/services', async (req, res) => {
+app.get('/services', verifyToken, async (req, res) => {
     const result = await allService.find().toArray();
     res.send(result)
 })
