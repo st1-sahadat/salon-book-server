@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors"
 import "dotenv/config"
 import { MongoClient, ObjectId } from 'mongodb';
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 
 const PORT = 5000;
@@ -30,7 +31,6 @@ const allTransactions = db.collection("transactions");
 // User verify cheaker
 const verifyToken = async(req, res, next) => {
     const authHeader = req.headers.authorization;
-    console.log(authHeader);
     
     if (!authHeader) {
         return res.status(401).send({ msg: 'Unauthorized!' })
@@ -50,7 +50,6 @@ const verifyToken = async(req, res, next) => {
         console.error("Token verification failed:", error);
         return res.status(401).send({ msg: "Unauthorized!" })
     }
-    next()
 }
 
 // home
