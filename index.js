@@ -27,6 +27,32 @@ const allService = db.collection("services");
 const allAppointments = db.collection("appointments");
 const allTransactions = db.collection("transactions");
 
+// User verify cheaker
+const verifyToken = async(req, res, next) => {
+    const authHeader = req.headers.authorization;
+    console.log(authHeader);
+    
+    if (!authHeader) {
+        return res.status(401).send({ msg: 'Unauthorized!' })
+    }
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+        return res.status(401).send({ msg: 'Unauthorized!' })
+    }
+    console.log(token);
+
+    const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`));
+    try{
+    const {payload} = await jwtVerify(token, JWKS);
+    console.log(payload);
+    next();
+    }catch(error){
+        console.error("Token verification failed:", error);
+        return res.status(401).send({ msg: "Unauthorized!" })
+    }
+    next()
+}
+
 // home
 app.get("/", (req, res) =>{
     res.send("Server Home Page!")
@@ -41,7 +67,7 @@ app.get('/six-services', async (req, res) => {
     res.send(result);
 });
 // Service ID API and Email API
-app.get('/services/:id',  async (req, res) => {
+app.get('/services/:id', verifyToken,  async (req, res) => {
     const { id } = req.params;
   if (ObjectId.isValid(id)) {
     const result = await allService.findOne({ _id: new ObjectId(id) });
